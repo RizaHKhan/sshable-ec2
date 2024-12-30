@@ -1,14 +1,51 @@
-# Welcome to your CDK TypeScript project
+# EC2 instance with SSH access
 
-This is a blank project for CDK development with TypeScript.
+Create an EC2 instance that allows for SSH access.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## VPC
 
-## Useful commands
+We need to create a VPC that has a public subnet.
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+```typescript
+const vpc = new Vpc(scope, `${name}Vpc`, {
+    subnetConfiguration: [
+        {
+            cidrMask: 24,
+            name: "PublicSubnet",
+            subnetType: SubnetType.PUBLIC,
+        },
+    ],
+})
+```
+
+We then need to create a security group that will allow SSH access via port 22:
+
+```typescript
+const securityGroup = new SecurityGroup(scope, `${name}SecurityGroup`, {
+    securityGroupName: `${name}SecurityGroup`,
+    vpc,
+    allowAllOutbound: false,
+})
+
+securityGroup.addIngressRule(
+    Peer.anyIpv4(),
+    Port.tcp(22),
+    "Allow SSH access from the world",
+)
+```
+
+## Compute
+
+Finally, we use the VPC and Security group to create an instance which is part of the public subnet. 
+It is very important to include the `keyPair` property as well so we can use it to connect to the instance.
+
+```typescript
+new Instance(scope, `${name}Instance`, {
+    instanceType: InstanceType.of(InstanceClass.T2, InstanceSize.MICRO),
+    machineImage: MachineImage.latestAmazonLinux2(),
+    keyPair: new KeyPair(scope, `${name}KeyPair`, {}),
+    vpc,
+    securityGroup,
+    vpcSubnets: { subnetType: SubnetType.PUBLIC },
+})
+```

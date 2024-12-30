@@ -1,16 +1,15 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { Stack, StackProps } from "aws-cdk-lib"
+import { Construct } from "constructs"
+import networking from "./constructs/01-networking"
+import compute from "./constructs/02-compute"
 
-export class Ec2Stack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
+export class Ec2Stack extends Stack {
+    constructor(scope: Construct, id: string, props?: StackProps) {
+        super(scope, id, props)
 
-    // The code that defines your stack goes here
+        const name = "MyApp"
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'Ec2Queue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
-  }
+        const { vpc, securityGroup } = networking(this, name)
+        compute(this, name, { vpc, securityGroup })
+    }
 }
