@@ -2,6 +2,8 @@
 
 Create an EC2 instance that allows for SSH access.
 
+![image](https://github.com/user-attachments/assets/b0d9dbff-2043-44ec-87e9-3cec8a29c4fe)
+
 ## VPC
 
 We need to create a VPC that has a public subnet.
